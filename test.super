@@ -1,0 +1,32 @@
+(ROOT
+  (S
+    (NP (D The) (N cat))
+    (VP (V slept)
+        (PP (P on)
+            (NP (D the) (N mat))))))
+(ROOT
+  (S
+    (IN So)
+    (S|<NP-VP-.>
+      (NP (PRP he))
+      (S|<VP-.>
+        (VP
+          (VBD went)
+          (VP|<PP-PP-,-S>
+            (PP
+              (TO to)
+              (NP
+                (NP (DT the) (NN wood))
+                (PP (IN by) (NP (DT the) (NN well)))))
+            (VP|<PP-,-S>
+              (PP
+                (IN with)
+                (NP (PRP$ his) (NP|<JJ-NN> (JJ good) (NN bow))))
+              (VP|<,-S>
+                (, ,)
+                (S
+                  (NP (-NONE- *))
+                  (VP
+                    (TO to)
+                    (VP (VB bide) (NP (PRP$ his) (NN time)))))))))
+        (. .)))))

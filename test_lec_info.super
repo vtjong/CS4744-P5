@@ -1,0 +1,13 @@
+(ROOT+S, NP, VP)
+(NP, D, N)
+(VP, V, PP)
+
+
+
+[['ROOT+S', 'NP', 'VP'], ['NP', 'D', 'N'], ['VP', 'V', 'PP'], ['PP', 'P', 'NP'], ['NP', 'D', 'N']]
+
+[['D^X', 'The'], ['N^X', 'cat'], ['V^X', 'slept'], ['P^X', 'on'], ['D^X', 'the'], ['N^X', 'mat']]
+
+[['ROOT+S', 'IN', 'S|<NP-VP-.>'], ['S|<NP-VP-.>', 'NP', 'S|<VP-.>'], ['S|<VP-.>', 'VP', '.'], ['VP', 'VBD', 'VP|<PP-PP-,-S>'], ['VP|<PP-PP-,-S>', 'PP', 'VP|<PP-,-S>'], ['PP', 'TO', 'NP'], ['NP', 'NP', 'PP'], ['NP', 'DT', 'NN'], ['PP', 'IN', 'NP'], ['NP', 'DT', 'NN'], ['VP|<PP-,-S>', 'PP', 'VP|<,-S>'], ['PP', 'IN', 'NP'], ['NP', 'PRP$', 'NP|<JJ-NN>'], ['NP|<JJ-NN>', 'JJ', 'NN'], ['VP|<,-S>', ',', 'S'], ['S', 'NP', 'VP'], ['VP', 'TO', 'VP'], ['VP', 'VB', 'NP'], ['NP', 'PRP$', 'NN']]
+
+[['IN^X', 'So'], ['NP+PRP^X', 'he'], ['VBD^X', 'went'], ['TO^X', 'to'], ['DT^X', 'the'], ['NN^X', 'wood'], ['IN^X', 'by'], ['DT^X', 'the'], ['NN^X', 'well'], ['IN^X', 'with'], ['PRP$^X', 'his'], ['JJ^X', 'good'], ['NN^X', 'bow'], [',^X', ','], ['NP+-NONE-^X', '*'], ['TO^X', 'to'], ['VB^X', 'bide'], ['PRP$^X', 'his'], ['NN^X', 'time'], ['.^X', '.']]

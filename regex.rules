@@ -1,0 +1,15 @@
+(ROOT (S (NP (D The) (N cat)) (VP (V slept) (PP (P on) (NP (D the) (N mat))))))
+
+______________
+^ = start of line
+. = any character except line break \r\n
+* = 0 or more repetitions 
+[^ = exclusion
+
+'^ *([^ ()]+) *(.*)' : 
+    - start w/ any number of spaces
+    - word w/o open and close parentheses
+    - space as many of them
+    - another word that is not line break
+
+(NN sjkdjksfk)

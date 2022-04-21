@@ -1,0 +1,7 @@
+(ROOT
+  (S
+    (NP (D The) (N cat))
+    (VP (V slept)
+        (PP (P on)
+            (NP (D the) (N mat))))))
+

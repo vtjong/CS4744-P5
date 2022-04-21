@@ -1,0 +1,4 @@
+G ROOT+S : IN S|NP-VP-. 0.0
+X IN^X : So 0.0
+G S|NP-VP-. : NP S|VP-. 0.0
+

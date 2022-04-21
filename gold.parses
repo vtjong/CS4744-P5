@@ -1,0 +1,3 @@
+(ROOT (S (PRP I) (VP (VB have) (NNS matches))) (. .))
+(ROOT (S (NP (NN Fruit) (NNS flies)) (VP (VBZ like) (NP (DT a) (NN banana)))) (. .))
+(ROOT (S (NP (NNS Apples) (RC (PNP I) (VBZ like))) (VP (VBZ are) (JJ red))))
