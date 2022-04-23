@@ -22,11 +22,11 @@ class MLE:
         dict, key, val = args
         dict.setdefault(key, {})
         self.update_counts(dict[key], val)
-    
+
     def update_probs(self, dict):
         total_counts = np.sum(np.array(list(dict.values())))
-        # dict = {key: np.log(float(val)/total_counts) for (key, val) in dict.items()}
-        dict = {key: float(val)/total_counts for (key, val) in dict.items()}
+        dict = {key: np.log(float(val)/total_counts) for (key, val) in dict.items()}
+        #dict = {key: float(val)/total_counts for (key, val) in dict.items()}
         return dict
     
     def matrix_probs(self, dict):
@@ -45,49 +45,64 @@ class MLE:
             tags.add(tag)
         else: 
             tag = tag if tag in tags else unk_val
+
         return tag
 
-    def traverse(self, tree, curr_tag, train):
+
+    def is_unary(self, node):
+        children = node.ch
+        number_children = len(children)
+        if number_children != 1:
+            return 0
+
+        child = children[0]
+        grand_children = child.ch
+        number_grand_children = len(grand_children)
+        if number_grand_children == 0:
+            return 0
+
+        return 1
+
+
+    def traverse(self, tree, curr_tag, unitary_tag, train):
         '''
         [traverse()] traverses through tree [tree] with string tag [curr_tag] and builds up grammar G and X lists recursively. If [train] is true, then [traverse] adds lexeme to self.vocab, otherwise it replaces it with "<UNK-T>".
         '''
+
         curr_tag = curr_tag if '+' or "UNK" in curr_tag else tree.c
+        if unitary_tag != "":
+            curr_tag = unitary_tag + "+" + curr_tag
+
         children = tree.ch
         num_children = len(children)
 
+        # unary, terminal, preterminal
         if num_children == 1:
-            child = tree.ch[0]
+            child = children[0]
             child_tag = child.c
-            if child_tag.isupper(): # unary level
-                curr_tag = curr_tag + "+" + child_tag
-                children = child.ch
-                terminal = "preterminal" if len(children) == 1 and not children[0].c.isupper() else "nonterminal"
 
-                curr_tag = self.update_tags(self.tags, curr_tag, train, terminal)
-                self.traverse(child, curr_tag, train)
-                return "unary", curr_tag
+            # unary level
+            if self.is_unary(tree):
 
-            else: # leaf node reached
-                child_tag = self.update_tags(self.vocab, child_tag, train, "terminal")
-                self.update_pair(self.X, curr_tag, child_tag)
-                # self.X.append([preterm_tag] + [child_tag]) 
-                return "terminal", curr_tag
+                return self.traverse(child, child_tag, curr_tag, train)
 
-        elif num_children == 2:
-            left_child, right_child = children[0], children[1]
-            left_tag, right_tag = left_child.c, right_child.c
-            left_terminal = "preterminal" if len(left_child.ch) == 1 and not left_child.ch[0].c.isupper() else "nonterminal"
-            right_terminal = "preterminal" if len(right_child.ch) == 1 and not right_child.ch[0].c.isupper() else "nonterminal"
-            
-            # left_tag, right_tag = self.update_tags(self.tags, left_tag, train, left_terminal), self.update_tags(self.tags, right_tag, train, right_terminal)
+            # preterminal
+            curr_tag = self.update_tags(self.tags, curr_tag, train, "preterminal")
+            child_tag = self.update_tags(self.vocab, child_tag, train, "terminal")
+            self.update_pair(self.X, curr_tag, child_tag)
+            return curr_tag
 
-            # impossible for curr_tag to be preterminal in binary case
-            # self.update_pair(self.G, curr_tag, left_tag + " " + right_tag)
-            
-            self.traverse(left_child, left_tag, train)
-            self.traverse(right_child, right_tag, train)
-            
-            
+        # nonterminal
+        if num_children == 2:
+            curr_tag = self.update_tags(self.tags, curr_tag, train, "nonterminal")
+            left_tag = self.traverse(children[0], children[0].c, "", train)
+            right_tag = self.traverse(children[1], children[1].c, "", train)
+            self.update_pair(self.G, curr_tag, left_tag + " " + right_tag)
+            return curr_tag
+
+        return ""
+
+
     def tree_traverse(self, tree_list, train):
         '''
         [tree_traverse()] takes care of the tree reading logic and calls traverse for each tree, corresponding to a sentence. 
@@ -95,7 +110,10 @@ class MLE:
         for tree_str in tree_list:
             tree = Tree()   
             tree.read(tree_str)
-            self.traverse(tree, tree.c, train)
+            # self.traverse(tree, "", "", 1, 0, "", train)
+            # self.traverse(tree, tree.c, train)
+            self.traverse(tree, tree.c, "", train)
+
             
     def parse_file(self):
         '''
@@ -137,7 +155,7 @@ class MLE:
                     file.write("G " + tag_from + " : " + tag_to + " " +
                             str(self.G[tag_from][tag_to]))
                     file.write("\n")
-                            
+
             for transition in self.X.keys():
                 for transition_key in self.X[transition].keys():
                     file.write("X " + transition + " : " + transition_key + " " + str(self.X[transition][transition_key]))
