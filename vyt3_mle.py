@@ -69,7 +69,7 @@ class MLE:
         [traverse()] traverses through tree [tree] with string tag [curr_tag] and builds up grammar G and X lists recursively. If [train] is true, then [traverse] adds lexeme to self.vocab, otherwise it replaces it with "<UNK-T>".
         '''
 
-        curr_tag = curr_tag if '+' or "UNK" in curr_tag else tree.c
+        # curr_tag = curr_tag if '+' or "UNK" in curr_tag else tree.c
         if unitary_tag != "":
             curr_tag = unitary_tag + "+" + curr_tag
 
@@ -83,7 +83,6 @@ class MLE:
 
             # unary level
             if self.is_unary(tree):
-
                 return self.traverse(child, child_tag, curr_tag, train)
 
             # preterminal
@@ -125,11 +124,11 @@ class MLE:
         - tree.Tree.read() returns an empty string, but you need to first create a tree object and then 
         '''  
         
-        # Make for loop for reading in all trees
+        # Read in trees 
         input_file, split_val = sys.argv[1], float(sys.argv[2])
 
+        # Parse trees and recurse
         with open(input_file) as file:
-            
             entire_file = file.read().replace("\n", " ").split("(ROOT ")
             file_list = ["(ROOT " + tree for tree in entire_file if tree!= ""]
             train_list = file_list[:int(len(file_list) * split_val)]

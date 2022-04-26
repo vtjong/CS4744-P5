@@ -1,0 +1,6 @@
+LL0: -18.930603676602015
+(ROOT+S (NP+PRP^X I) (S|<VP-.> (VP (VB^X have) (NP+NNS^X matches)) (.^X .)))
+LL1: -25.359349666103643
+(ROOT+S (NP+NNS^X <UNK-T>) (S|<VP-.> (VP (VBZ^X flies) (PP (IN^X like) (NP (DT^X a) (NN^X <UNK-T>)))) (.^X .)))
+LL2: nan
+FAIL
