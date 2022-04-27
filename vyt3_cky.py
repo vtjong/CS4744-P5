@@ -2,9 +2,10 @@ import sys
 import numpy as np
 
 class TreeMaker:
-    def __init__(self, vocab, idx_pos):
+    def __init__(self, vocab, idx_pos, tree_roots_idx):
         self.vocab = vocab
         self.idx_pos = idx_pos
+        self.tree_roots_idx = tree_roots_idx
 
     def get_best_root(self, *args):
         """
@@ -76,7 +77,7 @@ class CKY:
         self.num_tags = len(self.pos)
         self.parse_testfile()
         self.num_sent = len(self.sentences)
-        self.treemaker = TreeMaker(self.vocab, self.idx_pos)
+        self.treemaker = TreeMaker(self.vocab, self.idx_pos, self.tree_roots_idx)
         self.test_prs = [self.cky(sentence) for sentence in self.sentences]
         self.save_it_up() 
     
@@ -90,7 +91,8 @@ class CKY:
         [cky_base()] initializes cky data structs and fills in base probabilities.
         """
         trellis = np.zeros((self.num_sent, self.num_sent, self.num_tags)) # chart contains probs from lower trig mat
-        bckptr = np.empty_like(trellis, dtype=object).fill((-1, (-1, -1), (-1, -1), -1, -1))   
+        bckptr = np.empty_like(trellis, dtype=object)
+        bckptr.fill((-1, (-1, -1), (-1, -1), -1, -1))   
 
         # Multiple possibilities so create a new dimension  
         for i in range(self.num_sent):
@@ -115,7 +117,7 @@ class CKY:
                 # node_pr = self.pos_pr[(left_ch, right_ch)][node]
                 left_pr, right_pr = trellis[k, j, left_idx], trellis[row, col, right_idx]
                 contender_pr = node_pr * left_pr * right_pr
-                                    
+                
                 # Now we have two conditions to check
                 #   (1) valid prob left_prob > 0 and right_prob > 0 (bcuz we initialize to -1)
                 #   (2) contender prob is better than OPT 
@@ -193,7 +195,7 @@ class CKY:
         [save_it_up()] dumps all trees and stats into output.parses.
         """
         with open("output.parses", "w") as out_file:
-            for idx in self.num_sent:
+            for idx in range(self.num_sent):
                 pr = str(self.test_prs[idx][0])
                 tree = self.test_prs[idx][1]
                 out_file.write("LL" + str(idx) + ": " + pr + "\n")
