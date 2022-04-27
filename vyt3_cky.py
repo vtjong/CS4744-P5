@@ -2,8 +2,7 @@ import sys
 import numpy as np
 
 class TreeMaker:
-    def __init__(self, vocab, idx_pos, tree_roots_idx):
-        self.vocab = vocab
+    def __init__(self, idx_pos, tree_roots_idx):
         self.idx_pos = idx_pos
         self.tree_roots_idx = tree_roots_idx
 
@@ -13,13 +12,13 @@ class TreeMaker:
         """
         n, trellis = args
         best_root_pr, best_root_idx = 0, str()
+        fail_flag = True
         for root, root_idx in self.tree_roots_idx.items():
             contender_pr = trellis[-1][0][root_idx]
-            fail_flag = False if contender_pr != 0 else True
-
-            # Update new best
-            if not fail_flag and contender_pr > best_root_pr:
-                best_root_pr, best_root_idx = contender_pr, root_idx
+            if contender_pr!= 0:
+                fail_flag = False
+                if contender_pr > best_root_pr: # Update new best
+                    best_root_pr, best_root_idx = contender_pr , root_idx
         root = (n - 1, 0, best_root_idx)
         return root, best_root_pr, fail_flag
     
@@ -30,7 +29,7 @@ class TreeMaker:
         children = bkptr[ptr[0], ptr[1], tag]
         return children[1], children[2], children[3], children[-1]
     
-    def tree_traverse(self, ptr, tag, bkptr):
+    def tree_traverse(self, ptr, tag, bkptr, sentence):
         """
         [tree_traverse()] traverses through all nodes and builds up trees recursively.
         """
@@ -38,31 +37,31 @@ class TreeMaker:
         tree = "(" + self.idx_pos[tag]
 
         # Base case
-        if i == 0: return tree + " " + str(self.vocab[j]) + ")"
+        if i == 0: return tree + " " + str(sentence[j]) + ")"
 
         # Recursively get subtrees
         lt_ptr, rt_ptr, lt_lab, rt_lab = self.get_children(ptr, tag, bkptr)
-        lt_tree = self.tree_traverse(lt_ptr, lt_lab, bkptr)
-        rt_tree = self.tree_traverse(rt_ptr, rt_lab, bkptr)
+        lt_tree = self.tree_traverse(lt_ptr, lt_lab, bkptr, sentence)
+        rt_tree = self.tree_traverse(rt_ptr, rt_lab, bkptr, sentence)
         tree += " " + lt_tree + " " + rt_tree + ")"
 
         return tree
 
-    def tree_handler(self, bkptr, root_info):
+    def tree_handler(self, bkptr, root_info, sentence):
         """
         [tree_handler()] handles all the backtracing, tree building logic for given a tree with [root], accessing children through [bckptr].
         """
-        n, root_pos = len(self.vocab), self.idx_pos[root_info[2]]
+        n, root_pos = len(sentence), self.idx_pos[root_info[2]]
 
         # Begin tree
         tree = "(" + root_pos
 
         # Single node case
-        if n<=1: return tree + " " + str(self.vocab[0]) + ")"
+        if n<=1: return tree + " " + str(sentence[0]) + ")"
 
         # General case
         lt_ptr, rt_ptr, lt_lab, rt_lab = self.get_children(root_info[:2], root_info[2], bkptr)
-        root_left_tree, root_right_tree = self.tree_traverse(lt_ptr, lt_lab, bkptr),self.tree_traverse(rt_ptr, rt_lab, bkptr)
+        root_left_tree, root_right_tree = self.tree_traverse(lt_ptr, lt_lab, bkptr, sentence), self.tree_traverse(rt_ptr, rt_lab, bkptr, sentence)
         tree += " " + root_left_tree + " " + root_right_tree + ")"
 
         return tree
@@ -76,8 +75,7 @@ class CKY:
         self.parse_pcfg()
         self.num_tags = len(self.pos)
         self.parse_testfile()
-        self.num_sent = len(self.sentences)
-        self.treemaker = TreeMaker(self.vocab, self.idx_pos, self.tree_roots_idx)
+        self.treemaker = TreeMaker(self.idx_pos, self.tree_roots_idx)
         self.test_prs = [self.cky(sentence) for sentence in self.sentences]
         self.save_it_up() 
     
@@ -90,12 +88,13 @@ class CKY:
         """
         [cky_base()] initializes cky data structs and fills in base probabilities.
         """
-        trellis = np.zeros((self.num_sent, self.num_sent, self.num_tags)) # chart contains probs from lower trig mat
+        num_words = len(sentence)
+        trellis = np.zeros((num_words, num_words, self.num_tags)) # chart contains probs from lower trig mat
         bckptr = np.empty_like(trellis, dtype=object)
         bckptr.fill((-1, (-1, -1), (-1, -1), -1, -1))   
 
-        # Multiple possibilities so create a new dimension  
-        for i in range(self.num_sent):
+        # Iterate through all sentences and test words 
+        for i in range(num_words):
             word = sentence[i]
             for key in self.word_pr[word]:
                 key_ind = self.pos_idx[key]
@@ -137,24 +136,24 @@ class CKY:
         """
         # Base step
         trellis, bkptr = self.cky_base(sentence)
-        self.num_sent = trellis.shape[0]   # number of sentences
+        num_words = len(sentence)
 
         # Inductive step
-        for i in range(1, self.num_sent):
-            for j in range(self.num_sent - i):
+        for i in range(1, num_words):
+            for j in range(num_words - i):
                 for k in range(i):
                     self.cky_ind(trellis, bkptr, i, j, k)
         
         # Handle logic to find root
-        root, root_pr, fail_flag = self.treemaker.get_best_root(self.num_sent, trellis)
+        root, root_pr, fail_flag = self.treemaker.get_best_root(num_words, trellis)
 
         # Retrace sequence if one exists, otherwise "FAIL" and "nan"
         if fail_flag: 
             tree, root_pr = "FAIL", "nan"
         else: 
-            tree = self.treemaker.tree_handler(bkptr, root)
+            tree = self.treemaker.tree_handler(bkptr, root, sentence)
         
-        tree_pr = root_pr
+        tree_pr = np.log(float(root_pr))
         return tree_pr, tree
             
     def parse_pcfg(self):
@@ -195,8 +194,11 @@ class CKY:
         [save_it_up()] dumps all trees and stats into output.parses.
         """
         with open("output.parses", "w") as out_file:
-            for idx in range(self.num_sent):
+            count = len(self.test_prs)
+            print(count)
+            for idx in range(count):
                 pr = str(self.test_prs[idx][0])
+                print(pr)
                 tree = self.test_prs[idx][1]
                 out_file.write("LL" + str(idx) + ": " + pr + "\n")
                 out_file.write(tree + "\n")
