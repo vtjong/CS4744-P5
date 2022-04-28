@@ -26,7 +26,6 @@ class MLE:
     def update_probs(self, dict):
         total_counts = np.sum(np.array(list(dict.values())))
         dict = {key: np.log(float(val)/total_counts) for (key, val) in dict.items()}
-        #dict = {key: float(val)/total_counts for (key, val) in dict.items()}
         return dict
     
     def matrix_probs(self, dict):
@@ -52,15 +51,12 @@ class MLE:
     def is_unary(self, node):
         children = node.ch
         number_children = len(children)
-        if number_children != 1:
-            return 0
+        if number_children != 1: return 0
 
         child = children[0]
         grand_children = child.ch
         number_grand_children = len(grand_children)
-        if number_grand_children == 0:
-            return 0
-
+        if number_grand_children == 0: return 0
         return 1
 
 
@@ -109,8 +105,6 @@ class MLE:
         for tree_str in tree_list:
             tree = Tree()   
             tree.read(tree_str)
-            # self.traverse(tree, "", "", 1, 0, "", train)
-            # self.traverse(tree, tree.c, train)
             self.traverse(tree, tree.c, "", train)
 
             

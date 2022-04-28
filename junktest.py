@@ -12,7 +12,7 @@ import numpy as np
 # value[()] = (-1, (-1, -1), (-1, -1), -1, -1)
 # vb = np.full(shape, value, dtype=object)
 # print(vb)
-fuck = [0,1,2,3,4]
-# print(np.log(5/50))
-print(fuck[:2])
-# print(np.log(10/50))
+# fuck = [0,1,2,3,4]
+print(np.log(5/50))
+# print(fuck[:2])
+print(np.log(10/50))
