@@ -1,5 +1,4 @@
 import sys
-import re
 import numpy as np
 from tree import Tree
 
@@ -25,7 +24,7 @@ class TreeMaker:
     
     def visit(self, node, visited, lexeme):
         """
-        [visited(node, visited_dict, lexeme)] updates the names of all lexemes with their count appearance in the sentence for uniqueness of lexemes. 
+        [visited(node, visited_dict, lexeme)] updates the names of all lexemes with their count vals in the sentence to enforce lexeme uniqueness. 
         """
         visited[lexeme] = 1 if lexeme not in visited else visited[lexeme] + 1
         node.c = lexeme + "_" + str(visited[lexeme])
@@ -63,8 +62,7 @@ class Eval:
         out_charts = self.make_charts(self.outtrees_and_spans)
         gold_charts = self.make_charts(self.goldtrees_and_spans)
         precision, recall, f_measure = self.evaluate(out_charts, gold_charts)
-        self.output_to_file("output_val.eval", precision, recall, f_measure)
-        # self.save_it_up() 
+        self.save_it_up(precision, recall, f_measure)
 
     def parse_files(self):
         """
@@ -149,27 +147,26 @@ class Eval:
         """
         [evaluate(output_charts, gold_charts)] calculates the recall, precision, and f_measure to compare output model parses and gold model parses. 
         """
-        vals = [self.compute_vals(output_chart, gold_chart) for output_chart, gold_chart in zip(output_charts, gold_charts)]
+        stats = [self.compute_vals(output_chart, gold_chart) for output_chart, gold_chart in zip(output_charts, gold_charts)]
         eval = lambda a, b : float(a) / b if b != 0 else 0.0
 
-        recalls = [eval(val[0], val[1]) for val in vals]
-        precisions = [eval(val[0], val[2]) for val in vals]
+        recalls = [eval(val[0], val[1]) for val in stats]
+        precisions = [eval(val[0], val[2]) for val in stats]
         nums = [2*recall*precision for recall, precision in zip(recalls, precisions)]
         dens = [recall+precision for recall, precision in zip(recalls, precisions)]
         f_measure = [eval(num,den) for (num, den) in zip(nums, dens)]
 
         return precisions, recalls, f_measure
 
-
-    def output_to_file(self, output_file, precision, recall, f_measure):
-        f = open(output_file, "w")
-
-        for i in range(len(precision)):
-            f.write("P " + str(precision[i]) + ";")
-            f.write("R " + str(recall[i]) + ";")
-            f.write("F " + str(f_measure[i]) + "\n")
-
-        f.close()
+    def save_it_up(self, precision, recall, f_measure):
+        """
+        [save_it_up()] dumps all stats in model.pcfg.
+        """
+        with open("output.eval", "w") as file:
+            for i in range(len(precision)):
+                file.write("P " + str(precision[i]) + ";")
+                file.write("R " + str(recall[i]) + ";")
+                file.write("F " + str(f_measure[i]) + "\n")
 
 def main():
     Eval()
